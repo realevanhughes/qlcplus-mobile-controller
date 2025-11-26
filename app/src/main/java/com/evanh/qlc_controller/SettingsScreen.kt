@@ -1,9 +1,12 @@
 package com.evanh.qlc_controller
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.service.controls.Control
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,7 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 
 fun getAppVersionInfo(context: Context): Pair<String, Long> {
     val pm = context.packageManager
@@ -65,6 +70,7 @@ fun SettingsScreen(
     vm: ControlViewModel,
     onDone: () -> Unit
 ) {
+    val context = LocalContext.current
 
     var refreshSec by remember { mutableLongStateOf(vm.DMXRefresh.longValue) }
     var fade by remember { mutableLongStateOf(vm.DMXFade.longValue) }
@@ -373,16 +379,54 @@ fun SettingsScreen(
             Text("About", style = MaterialTheme.typography.bodyMedium)
 
             Spacer(Modifier.height(12.dp))
+            val context = LocalContext.current
+            val isDark = isSystemInDarkTheme()
+
+            val githubIcon = if (isDark) {
+                R.drawable.github_mark_white
+            } else {
+                R.drawable.github_mark
+            }
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFBE9236)),
             ) {
-                Icon(Icons.Default.Star, null, modifier=Modifier.padding(12.dp))
-                Text("You are running version $versionCode of QLC+ mobile controller built by Evan Hughes.",
-                    modifier=Modifier.padding(12.dp))
+                Column(Modifier.padding(12.dp)) {
+                    Icon(
+                        Icons.Default.Star,
+                        contentDescription = null,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        "You are running version $versionCode of QLC+ mobile controller built by Evan Hughes.",
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    AssistChip(
+                        onClick = {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                "https://github.com/realevanhughes/qlcplus-mobile-controller".toUri()
+                            )
+                            context.startActivity(intent)
+                        },
+                        label = { Text("View on GitHub") },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(id = githubIcon),
+                                contentDescription = "GitHub",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.height(20.dp).width(20.dp)
+                            )
+                        },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            leadingIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                }
             }
-
             Spacer(Modifier.height(80.dp))
         }
     }
