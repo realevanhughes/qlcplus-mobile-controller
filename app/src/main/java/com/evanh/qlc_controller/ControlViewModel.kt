@@ -1,6 +1,5 @@
 package com.evanh.qlc_controller
 
-import android.util.Log
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -8,9 +7,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.delay
 import org.json.JSONObject
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ControlViewModel(
     private val settingsRepository: SettingsRepository
@@ -36,7 +33,6 @@ class ControlViewModel(
     init {
         viewModelScope.launch {
             settingsRepository.settingsFlow.collect { prefs ->
-                Log.d("SETTINGS", prefs.toString())
                 ip.value = (prefs[SettingsKeys.IP] ?: ip.value)
                 port.intValue = (prefs[SettingsKeys.PORT] ?: port.intValue)
 
@@ -215,7 +211,6 @@ class ControlViewModel(
                 dummySend("CUE", msg)
 
             ControlMode.WEBSOCKET -> {
-                Log.d("WS/DMX", "Next cue (widget: $widgetID)")
                 wsClient.send(msg)
             }
         }
@@ -228,7 +223,6 @@ class ControlViewModel(
                 dummySend("RESET-CH", msg)
 
             ControlMode.WEBSOCKET -> {
-                Log.d("WS/DMX", "Reset channel override: $channel")
                 wsClient.send(msg)
             }
         }
@@ -241,7 +235,6 @@ class ControlViewModel(
                 dummySend("RESET-UNI", msg)
 
             ControlMode.WEBSOCKET -> {
-                Log.d("WS/DMX", "Reset universe override: $universe")
                 wsClient.send(msg)
             }
         }

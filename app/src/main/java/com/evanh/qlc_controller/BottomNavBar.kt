@@ -9,9 +9,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material.icons.filled.Monitor
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.filled.Hub
-import androidx.compose.material.icons.filled.Widgets
-import androidx.compose.ui.graphics.Color
 
 @Composable
 fun BottomNavBar(navController: NavController, vm: ControlViewModel) {

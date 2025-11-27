@@ -1,8 +1,5 @@
 package com.evanh.qlc_controller
 
-import android.util.Log
-import android.view.HapticFeedbackConstants
-import android.view.View
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -36,9 +33,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MultipleStop
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Send
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.core.view.ViewCompat.performHapticFeedback
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
