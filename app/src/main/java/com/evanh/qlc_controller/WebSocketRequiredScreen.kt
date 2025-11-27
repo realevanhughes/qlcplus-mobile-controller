@@ -93,25 +93,27 @@ fun WebSocketRequiredScreen(onRetry: @Composable () -> Unit, vm: ControlViewMode
                     }
                 }
             }
-            Spacer(modifier = Modifier.weight(1f))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(Icons.Default.Info, null, modifier=Modifier.padding(12.dp))
-                Text("Hint:\nIf you are just testing the app's interface, use connection mode 'None' for a dummy connection!",
-                    modifier=Modifier.padding(12.dp))
-                Button(
-                    onClick = {
-                        navController.navigate("settings")
-                    },
+            if (vm.useSettingsPopups.value) {
+                Spacer(modifier = Modifier.weight(1f))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text("Go")
-                    Spacer(Modifier.width(5.dp))
-                    Icon(Icons.Default.ChevronRight, null)
+                    Icon(Icons.Default.Info, null, modifier=Modifier.padding(12.dp))
+                    Text("Hint:\nIf you are just testing the app's interface, use connection mode 'None' for a dummy connection!",
+                        modifier=Modifier.padding(12.dp))
+                    Button(
+                        onClick = {
+                            navController.navigate("settings")
+                        },
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Go")
+                        Spacer(Modifier.width(5.dp))
+                        Icon(Icons.Default.ChevronRight, null)
+                    }
                 }
-            }
+        }
         }
     }
     LaunchedEffect(waiting) {

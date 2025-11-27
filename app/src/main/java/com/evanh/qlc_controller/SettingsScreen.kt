@@ -77,6 +77,7 @@ fun SettingsScreen(
 
     var useIconLabels by remember { mutableStateOf(vm.useIconLabels.value) }
     var useHaptics by remember { mutableStateOf(vm.useHaptics.value) }
+    var useSettingsPopups by remember { mutableStateOf(vm.useSettingsPopups.value) }
 
     var ipText by remember { mutableStateOf(vm.ip.value) }
     var portText by remember { mutableStateOf(vm.port.value.toString()) }
@@ -95,6 +96,25 @@ fun SettingsScreen(
 
     val (versionName, versionCode) = getAppVersionInfo(LocalContext.current)
 
+    LaunchedEffect(vm) {
+        if (vm.connected.value) {
+            vm.disconnectWebSocket()
+        }
+    }
+
+    fun saveSettings() {
+        vm.updateIp(ipText)
+        vm.updatePort(portText.toInt())
+        vm.updateUniverseCount(universeCountText.toInt())
+        vm.updateDefaultUniverse(defaultUniverseText.toInt())
+        vm.updatePageSize(pageSizeText.toInt())
+        vm.updateDMXRefresh(refreshSec)
+        vm.updateDMXFade(fade)
+        vm.updateIconLabels(useIconLabels)
+        vm.updateHaptics(useHaptics)
+        vm.updateSettingsPopups(useSettingsPopups)
+    }
+
     Scaffold(
         bottomBar = {
             Box(
@@ -105,23 +125,14 @@ fun SettingsScreen(
                 Button(
                     enabled = allValid,
                     onClick = {
-                        vm.updateIp(ipText)
-                        vm.updatePort(portText.toInt())
-                        vm.updateUniverseCount(universeCountText.toInt())
-                        vm.updateDefaultUniverse(defaultUniverseText.toInt())
-                        vm.updatePageSize(pageSizeText.toInt())
-                        vm.updateDMXRefresh(refreshSec)
-                        vm.updateDMXFade(fade)
-                        vm.updateIconLabels(useIconLabels)
-
-                        if (vm.connected.value) vm.disconnectWebSocket()
-                        if (vm.controlMode.value == ControlMode.WEBSOCKET) vm.connectWebSocket()
-
-                        if (vm.controlMode.value == ControlMode.NONE) {
-                            vm.showMessage("Info","Running in dummy mode — no control connection set.")
+                        saveSettings()
+                        if (allValid) {
+                            if (vm.controlMode.value == ControlMode.WEBSOCKET) vm.connectWebSocket()
+                            onDone()
                         }
-
-                        onDone()
+                        else {
+                            vm.showMessage("Error","Invalid settings.")
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -158,6 +169,7 @@ fun SettingsScreen(
                         onCheckedChange = {
                             selectedControlIndex.value = index
                             vm.controlMode.value = mode
+                            saveSettings()
                         },
                         icon = {
                             when (mode) {
@@ -178,7 +190,7 @@ fun SettingsScreen(
             }
 
 
-            if (vm.controlMode.value == ControlMode.NONE) {
+            if (vm.controlMode.value == ControlMode.NONE && vm.useSettingsPopups.value) {
                 (Modifier.height(12.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -210,7 +222,7 @@ fun SettingsScreen(
                 }
             )
 
-            if (try { java.net.InetAddress.getByName(ipText); false } catch (e: Exception) { true }) {
+            if (try { java.net.InetAddress.getByName(ipText); false } catch (e: Exception) { true } && vm.useSettingsPopups.value) {
                 Spacer(Modifier.height(12.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -227,12 +239,23 @@ fun SettingsScreen(
 
             OutlinedTextField(
                 value = portText,
-                onValueChange = { portText = it },
+                onValueChange = {
+                    portText = it
+                    saveSettings()
+                },
                 label = { Text("Port") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    IconButton(onClick = { vm.showMessage("Info","This is the port which is used to connect to the host.\nThis must be forwarded in the host's firewall.\nThe default port on QLC+ is 9999.") }) {
+                        Icon(
+                            imageVector = Icons.Default.Help,
+                            contentDescription = "Help"
+                        )
+                    }
+                }
             )
 
-            if (portText != "9999") {
+            if (portText != "9999" && vm.useSettingsPopups.value) {
                 Spacer(Modifier.height(12.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -246,25 +269,47 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            Text("DMX Layout", style = MaterialTheme.typography.headlineSmall)
+            Text("Interface", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = universeCountText,
-                onValueChange = { universeCountText = it },
+                onValueChange = {
+                    universeCountText = it
+                    saveSettings()
+                },
                 label = { Text("Total Universes") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    IconButton(onClick = { vm.showMessage("Info","How many total DMX universes you can choose from.\nNot used very much in this application.") }) {
+                        Icon(
+                            imageVector = Icons.Default.Help,
+                            contentDescription = "Help"
+                        )
+                    }
+                }
             )
             Spacer(Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = defaultUniverseText,
-                onValueChange = { defaultUniverseText = it },
+                onValueChange = {
+                    defaultUniverseText = it
+                    saveSettings()
+                },
                 label = { Text("Default Universe") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    IconButton(onClick = { vm.showMessage("Info","The default port QLC+ controller will change/read when an interaction is made.\nUsually this is left at 1.") }) {
+                        Icon(
+                            imageVector = Icons.Default.Help,
+                            contentDescription = "Help"
+                        )
+                    }
+                }
             )
 
-            if (defaultUniverseText != "1") {
+            if (defaultUniverseText != "1" && vm.useSettingsPopups.value) {
                 Spacer(Modifier.height(12.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -284,9 +329,10 @@ fun SettingsScreen(
                 options = listOf("12", "24", "48", "96")
             ) { selected ->
                 pageSizeText = selected
+                saveSettings()
             }
 
-            if (pageSizeText.toInt() > 24) {
+            if (pageSizeText.toInt() > 24 && vm.useSettingsPopups.value) {
                 Spacer(Modifier.height(12.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -308,7 +354,10 @@ fun SettingsScreen(
                 Spacer(Modifier.weight(1f))
                 Switch(
                     checked = useIconLabels,
-                    onCheckedChange = { useIconLabels = it }
+                    onCheckedChange = {
+                        useIconLabels = it
+                        saveSettings()
+                    }
                 )
             }
 
@@ -322,7 +371,27 @@ fun SettingsScreen(
                 Spacer(Modifier.weight(1f))
                 Switch(
                     checked = useHaptics,
-                    onCheckedChange = { useHaptics = it }
+                    onCheckedChange = {
+                        useHaptics = it
+                        saveSettings()
+                    }
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Show helpful advice")
+                Spacer(Modifier.weight(1f))
+                Switch(
+                    checked = useSettingsPopups,
+                    onCheckedChange = {
+                        useSettingsPopups = it
+                        saveSettings()
+                    }
                 )
             }
 
@@ -334,12 +403,13 @@ fun SettingsScreen(
                 value = refreshSec.toFloat(),
                 onValueChange = { newVal ->
                     refreshSec = newVal.toLong()
+                    saveSettings()
                 },
                 valueRange = 20f..2000f,
                 steps = 10
             )
 
-            if (refreshSec > 400f) {
+            if (refreshSec > 400f && vm.useSettingsPopups.value) {
                 Spacer(Modifier.height(12.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -357,12 +427,13 @@ fun SettingsScreen(
                 value = fade.toFloat(),
                 onValueChange = { newVal ->
                     fade = newVal.toLong()
+                    saveSettings()
                 },
                 valueRange = 0f..1000f,
                 steps = 10
             )
 
-            if (fade > 400f) {
+            if (fade > 400f && vm.useSettingsPopups.value) {
                 Spacer(Modifier.height(12.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -376,7 +447,7 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            Text("About", style = MaterialTheme.typography.bodyMedium)
+            Text("About", style = MaterialTheme.typography.headlineSmall)
 
             Spacer(Modifier.height(12.dp))
             val context = LocalContext.current

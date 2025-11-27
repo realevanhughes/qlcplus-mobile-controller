@@ -41,4 +41,7 @@ class SettingsRepository(private val context: Context) {
     suspend fun saveHaptics(value: Boolean) {
         context.settingsDataStore.edit { it[SettingsKeys.HAPTICS] = value }
     }
+    suspend fun saveSettingsPopups(value: Boolean) {
+        context.settingsDataStore.edit { it[SettingsKeys.SETTINGS_POPUPS] = value }
+    }
 }

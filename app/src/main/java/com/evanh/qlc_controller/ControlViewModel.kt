@@ -31,6 +31,8 @@ class ControlViewModel(
 
     var useHaptics = mutableStateOf(false)
 
+    var useSettingsPopups = mutableStateOf(true)
+
     init {
         viewModelScope.launch {
             settingsRepository.settingsFlow.collect { prefs ->
@@ -46,6 +48,7 @@ class ControlViewModel(
                 DMXFade.longValue = (prefs[SettingsKeys.DMX_FADE] ?: DMXFade.longValue)
                 useIconLabels.value = (prefs[SettingsKeys.ICON_LABELS] ?: useIconLabels.value)
                 useHaptics.value = (prefs[SettingsKeys.HAPTICS] ?: useHaptics.value)
+                useSettingsPopups.value = (prefs[SettingsKeys.SETTINGS_POPUPS] ?: useSettingsPopups.value)
             }
         }
     }
@@ -93,6 +96,11 @@ class ControlViewModel(
     fun updateHaptics(v: Boolean) = viewModelScope.launch {
         useHaptics.value = v
         settingsRepository.saveHaptics(v)
+    }
+
+    fun updateSettingsPopups(v: Boolean) = viewModelScope.launch {
+        useSettingsPopups.value = v
+        settingsRepository.saveSettingsPopups(v)
     }
 
 

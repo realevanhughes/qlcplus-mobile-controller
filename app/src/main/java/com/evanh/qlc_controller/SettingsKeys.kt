@@ -12,4 +12,5 @@ object SettingsKeys {
     val DMX_FADE = longPreferencesKey("dmx_fade")
     val ICON_LABELS = booleanPreferencesKey("icon_labels")
     val HAPTICS = booleanPreferencesKey("haptics")
+    val SETTINGS_POPUPS = booleanPreferencesKey("settings_popups")
 }
