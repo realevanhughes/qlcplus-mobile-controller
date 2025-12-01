@@ -44,6 +44,7 @@ class QlcWebSocketClient(
 
     override fun onMessage(ws: WebSocket, text: String) {
         incoming.value = text
+        Log.d("DMX", "msg $text")
     }
 
     override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {

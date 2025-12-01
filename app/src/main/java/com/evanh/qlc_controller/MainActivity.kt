@@ -76,6 +76,13 @@ class MainActivity : ComponentActivity() {
                                 VirtualConsoleScreen(vm)
                             }
                         }
+                        composable(Screen.Fixtures.route) {
+                            if (vm.controlMode.value == ControlMode.WEBSOCKET && !vm.connected.value) {
+                                WebSocketRequiredScreen(onRetry = { FixtureManagerScreen(vm) }, vm, navController)
+                            } else {
+                                FixtureManagerScreen(vm)
+                            }
+                        }
                     }
                 }
             }

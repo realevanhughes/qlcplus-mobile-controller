@@ -1,13 +1,17 @@
 package com.evanh.qlc_controller
 
+import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.delay
 import org.json.JSONObject
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import kotlin.collections.plus
 
 class ControlViewModel(
     private val settingsRepository: SettingsRepository
@@ -155,10 +159,13 @@ class ControlViewModel(
         val msg = "CH|$channel|$intValue"
 
         when (controlMode.value) {
-            ControlMode.NONE ->
+            ControlMode.NONE -> {
                 dummySend("DMX", msg)
+                Log.d("DMX", "channel $channel set to $value")
+            }
 
             ControlMode.WEBSOCKET -> {
+                Log.d("DMX", "channel $channel set to $value")
                 wsClient.send(msg)
             }
         }
@@ -270,5 +277,42 @@ class ControlViewModel(
                 }
             }
         }
+    }
+
+    var fixtureTypes by mutableStateOf(arrayOf(
+        FixtureType(name="RGB", attributes=listOf(FixtureAttribute(name="Red", width=1), FixtureAttribute(name="Green", width=1), FixtureAttribute(name="Blue", width=1))),
+        FixtureType(name="RGBW", attributes=listOf(FixtureAttribute(name="Red", width=1), FixtureAttribute(name="Green", width=1), FixtureAttribute(name="Blue", width=1), FixtureAttribute(name="White", width=1)))
+    ))
+        private set
+
+    var fixtures by mutableStateOf(listOf<FixtureInstance>())
+        private set
+
+    fun addFixtureType(name: String, attrs: List<FixtureAttribute>) {
+        fixtureTypes += FixtureType(name = name, attributes = attrs)
+    }
+
+    fun addFixtureInstance(typeId: String, universe: Int, addr: Int, name: String) {
+        fixtures = fixtures + FixtureInstance(
+            typeId = typeId,
+            universe = universe,
+            startAddress = addr,
+            name = name
+        )
+    }
+
+    fun getType(id: String): FixtureType =
+        fixtureTypes.first { it.id == id }
+
+    fun getAttributes(): Array<FixtureAttribute> {
+        var arr = emptyArray<FixtureAttribute>()
+        for (fx in fixtureTypes){
+            for (att in fx.attributes) {
+                if (!arr.contains(att)) {
+                    arr += att
+                }
+            }
+        }
+        return arr
     }
 }
