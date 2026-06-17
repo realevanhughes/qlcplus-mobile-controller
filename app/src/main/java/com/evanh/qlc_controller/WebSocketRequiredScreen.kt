@@ -74,7 +74,7 @@ fun WebSocketRequiredScreen(onRetry: @Composable () -> Unit, vm: ControlViewMode
                     }
                     waiting = true
                 }) {
-                    Text("Retry Connection")
+                    Text("Try Connection")
                 }
                 Card(
                     shape = RoundedCornerShape(16.dp),
@@ -84,7 +84,7 @@ fun WebSocketRequiredScreen(onRetry: @Composable () -> Unit, vm: ControlViewMode
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(horizontal = 8.dp)
                     ) {
-                        Text("Auto re-entry")
+                        Text("Auto re-try")
                         Spacer(Modifier.width(15.dp))
                         Switch(
                             checked = autoReEntry,

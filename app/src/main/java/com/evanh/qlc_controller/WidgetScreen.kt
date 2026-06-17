@@ -12,8 +12,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Color
-import com.evanh.qlc_controller.VcWidget
 
 sealed class VcWidget(
     open val id: Int,
@@ -44,11 +42,9 @@ sealed class VcWidget(
 }
 
 
-// --- MAIN SCREEN COMPOSABLE ---
 @Composable
 fun WidgetScreen(vm: ControlViewModel) {
 
-    // This LaunchedEffect listens for messages and calls the parsing logic
     LaunchedEffect(Unit) {
         vm.wsIncoming.collect { msg ->
             if (msg == null) return@collect
@@ -57,15 +53,12 @@ fun WidgetScreen(vm: ControlViewModel) {
         }
     }
 
-    // This effect triggers the initial data fetch
     LaunchedEffect(vm.connected.value) {
         if (vm.connected.value && vm.controlMode.value == ControlMode.WEBSOCKET) {
-            // This VM function just sends the "getWidgetsList" message
             vm.fetchVCWidgets()
         }
     }
 
-    // Observe the widget list from the ViewModel
     val widgets = vm.vcWidgets.value
 
     Column(
@@ -87,7 +80,6 @@ fun WidgetScreen(vm: ControlViewModel) {
             modifier = Modifier.fillMaxSize()
         ) {
             items(widgets) { widget ->
-                // The 'when' statement renders the correct composable for each widget type
                 when (widget) {
                     is VcWidget.Button -> VCButtonCell(vm, widget)
                     is VcWidget.Slider -> VCSliderCell(vm, widget)
@@ -99,36 +91,24 @@ fun WidgetScreen(vm: ControlViewModel) {
     }
 }
 
-// --- PARSING LOGIC ---
-// These functions live in WidgetScreen.kt and are called by the LaunchedEffect
-
-/**
- * Main parser function to handle all incoming websocket messages.
- * This function directly modifies the ViewModel's state.
- */
 fun parseWebSocketMessage(msg: String, vm: ControlViewModel) {
     Log.d("DEBUG", "VM processing: $msg")
     val parts = msg.split("|")
 
-    // --- Handle API responses ---
     if (parts.getOrNull(0) == "QLC+API") {
         when (parts.getOrNull(1)) {
-            // Step 1: We get the list of all widgets
             "getWidgetsList" -> {
                 vm.pendingWidgets.clear()
-                vm.vcWidgets.value = emptyList() // Clear the UI
+                vm.vcWidgets.value = emptyList()
 
-                // Parse the ID/Name pairs into our temporary map
                 val widgetsMap = parseWidgetList(msg)
                 vm.pendingWidgets.putAll(widgetsMap)
 
-                // Step 2: Request the type for each widget
                 widgetsMap.keys.forEach { widgetId ->
                     vm.wsClient.send("QLC+API|getWidgetType|$widgetId")
                 }
             }
 
-            // Step 3: We get the type for a specific widget
             "getWidgetType" -> {
                 val id = parts.getOrNull(2)?.toIntOrNull()
                 val type = parts.getOrNull(3)
@@ -145,21 +125,18 @@ fun parseWebSocketMessage(msg: String, vm: ControlViewModel) {
                         else -> VcWidget.Other(id, name, type)
                     }
 
-                    // Add the new, fully-typed widget to the UI list
                     vm.vcWidgets.value += newWidget
                 }
             }
         }
-        return // It was an API message, we're done.
+        return
     }
 
-    // --- Handle FUNCTION state updates ---
     if (parts.getOrNull(0) == "FUNCTION") {
         val funcId = parts.getOrNull(1)?.toIntOrNull() ?: return
         val isOn = parts.getOrNull(2) == "Running"
 
         vm.vcWidgets.value = vm.vcWidgets.value.map {
-            // WARNING: This assumes Widget ID == Function ID.
             if (it.id == funcId && it is VcWidget.Button) {
                 it.copy(isOn = isOn)
             } else {
@@ -168,9 +145,6 @@ fun parseWebSocketMessage(msg: String, vm: ControlViewModel) {
         }
         return
     }
-
-    // --- Handle SLIDER state updates ---
-    // A simple "ID|VALUE" message
     if (parts.size == 2 && parts.getOrNull(0)?.toIntOrNull() != null) {
         val id = parts[0].toInt()
         val value = parts[1].toIntOrNull() ?: return
@@ -186,9 +160,6 @@ fun parseWebSocketMessage(msg: String, vm: ControlViewModel) {
     }
 }
 
-/**
- * Helper function to parse the initial "getWidgetsList" string.
- */
 private fun parseWidgetList(msg: String): Map<Int, String> {
     val parts = msg.split("|")
     val out = mutableMapOf<Int, String>()
@@ -207,8 +178,6 @@ private fun parseWidgetList(msg: String): Map<Int, String> {
     return out
 }
 
-
-// --- WIDGET COMPOSABLES ---
 
 @Composable
 fun VCButtonCell(vm: ControlViewModel, btn: VcWidget.Button) {

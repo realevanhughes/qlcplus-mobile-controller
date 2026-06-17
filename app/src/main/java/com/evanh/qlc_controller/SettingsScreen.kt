@@ -75,11 +75,11 @@ fun SettingsScreen(
     var useSettingsPopups by remember { mutableStateOf(vm.useSettingsPopups.value) }
 
     var ipText by remember { mutableStateOf(vm.ip.value) }
-    var portText by remember { mutableStateOf(vm.port.value.toString()) }
+    var portText by remember { mutableStateOf(vm.port.intValue.toString()) }
 
     var universeCountText by remember { mutableStateOf(vm.universeCount.value.toString()) }
-    var defaultUniverseText by remember { mutableStateOf(vm.defaultUniverse.value.toString()) }
-    var pageSizeText by remember { mutableStateOf(vm.pageSize.value.toString()) }
+    var defaultUniverseText by remember { mutableStateOf(vm.defaultUniverse.intValue.toString()) }
+    var pageSizeText by remember { mutableStateOf(vm.pageSize.intValue.toString()) }
 
     val ipValid = ipText.isNotBlank()
     val portValid = portText.toIntOrNull() != null
@@ -191,9 +191,20 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Info, null, modifier=Modifier.padding(12.dp))
-                    Text("Running in dummy mode — no control connection set.",
-                        modifier=Modifier.padding(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null
+                        )
+
+                        Text(
+                            "Running in dummy mode — no control connection set."
+                        )
+                    }
                 }
             }
 
@@ -208,7 +219,7 @@ fun SettingsScreen(
                 label = { Text("IP Address") },
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
-                    IconButton(onClick = { vm.showMessage("Info","This is the IP address of your QLC host computer.\nThis is usually something like:\n192.168.1.1") }) {
+                    IconButton(onClick = { vm.showMessage("Info","This is the IP address of your QLC host computer. Currently we only support IPv4 addresses.\nThis is usually something like:\n192.168.1.1") }) {
                         Icon(
                             imageVector = Icons.Default.Help,
                             contentDescription = "Help"
@@ -224,9 +235,20 @@ fun SettingsScreen(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
                 ) {
-                    Icon(Icons.Default.Warning, null, modifier=Modifier.padding(12.dp))
-                    Text("This IP address is invalid and will not connect to QLC+.",
-                        modifier=Modifier.padding(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null
+                        )
+
+                        Text(
+                            "This IP address is invalid and will not connect to QLC+."
+                        )
+                    }
                 }
             }
 
@@ -256,9 +278,20 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Info, null, modifier=Modifier.padding(12.dp))
-                    Text("The default port for QLC+ web interface (and websockets) is 9999.",
-                        modifier=Modifier.padding(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null
+                        )
+
+                        Text(
+                            "The default port for QLC+ web interface (and websockets) is 9999."
+                        )
+                    }
                 }
             }
 
@@ -310,9 +343,20 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Info, null, modifier=Modifier.padding(12.dp))
-                    Text("Due to QLC+ websocket support, controlling multiple universes is not in a working state.",
-                        modifier=Modifier.padding(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null
+                        )
+
+                        Text(
+                            "Due to QLC+ websocket support, controlling multiple universes is not in a working state."
+                        )
+                    }
                 }
             }
 
@@ -333,9 +377,20 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Info, null, modifier=Modifier.padding(12.dp))
-                    Text("Controlling or polling large numbers of fixtures requires lots of bandwidth.",
-                        modifier=Modifier.padding(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null
+                        )
+
+                        Text(
+                            "Controlling or polling large numbers of fixtures requires lots of bandwidth."
+                        )
+                    }
                 }
             }
 
@@ -410,11 +465,24 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Info, null, modifier=Modifier.padding(12.dp))
-                    Text("Slow refresh rate saves on bandwidth but makes the app less responsive.",
-                        modifier=Modifier.padding(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null
+                        )
+
+                        Text(
+                            "Slow refresh rate saves on bandwidth but makes the app less responsive."
+                        )
+                    }
                 }
             }
+
+            Spacer(Modifier.height(24.dp))
 
             Text("Sequential fade: ${fade}ms")
 
@@ -434,9 +502,20 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Icon(Icons.Default.Info, null, modifier=Modifier.padding(12.dp))
-                    Text("Large fade times consumes lots of memory and CPU. Looks cool but at what cost?",
-                        modifier=Modifier.padding(12.dp))
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null
+                        )
+
+                        Text(
+                            "Large fade times consume lots of memory and CPU. Looks cool but at what cost?"
+                        )
+                    }
                 }
             }
 
@@ -464,10 +543,7 @@ fun SettingsScreen(
                         contentDescription = null,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    Text(
-                        "You are running version $versionCode of QLC+ mobile controller built by Evan Hughes.",
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
+                    Text("You are running version $versionCode of QLC+ mobile controller built by Evan Hughes.")
                     AssistChip(
                         onClick = {
                             val intent = Intent(

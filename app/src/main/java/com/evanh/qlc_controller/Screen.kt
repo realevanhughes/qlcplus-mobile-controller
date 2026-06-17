@@ -6,5 +6,4 @@ sealed class Screen(val route: String, val title: String) {
 
     object Monitor: Screen("monitor", "Monitor")
     object Console: Screen("console", "Console")
-    object Fixtures: Screen("fixtures", "Fixtures")
 }

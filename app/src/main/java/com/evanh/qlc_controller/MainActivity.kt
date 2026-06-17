@@ -76,13 +76,6 @@ class MainActivity : ComponentActivity() {
                                 VirtualConsoleScreen(vm)
                             }
                         }
-                        composable(Screen.Fixtures.route) {
-                            if (vm.controlMode.value == ControlMode.WEBSOCKET && !vm.connected.value) {
-                                WebSocketRequiredScreen(onRetry = { FixtureManagerScreen(vm) }, vm, navController)
-                            } else {
-                                FixtureManagerScreen(vm)
-                            }
-                        }
                     }
                 }
             }
@@ -94,15 +87,12 @@ fun LockOrientationScreen(content: @Composable () -> Unit) {
     val context = LocalContext.current
     val activity = remember { context as Activity }
 
-    // Remember original orientation
     val originalOrientation = remember { activity.requestedOrientation }
 
     DisposableEffect(Unit) {
-        // Lock orientation to portrait while this screen is active
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         onDispose {
-            // Restore original orientation when leaving the screen
             activity.requestedOrientation = originalOrientation
         }
     }

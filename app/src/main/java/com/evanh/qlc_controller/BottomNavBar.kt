@@ -18,7 +18,6 @@ fun BottomNavBar(navController: NavController, vm: ControlViewModel) {
         Screen.Keypad,
         Screen.Monitor,
         Screen.Console,
-        Screen.Fixtures
     )
 
     NavigationBar {
@@ -33,7 +32,6 @@ fun BottomNavBar(navController: NavController, vm: ControlViewModel) {
                         Screen.Keypad -> vm.controlMode.value != ControlMode.WEBSOCKET || vm.connected.value
                         Screen.Monitor -> vm.controlMode.value != ControlMode.WEBSOCKET || vm.connected.value
                         Screen.Console -> vm.controlMode.value != ControlMode.WEBSOCKET || vm.connected.value
-                        Screen.Fixtures -> vm.controlMode.value != ControlMode.WEBSOCKET || vm.connected.value
                     },
                 selected = currentRoute == screen.route,
                 onClick = {
@@ -57,8 +55,6 @@ fun BottomNavBar(navController: NavController, vm: ControlViewModel) {
                         Screen.Console ->
                             Icon(Icons.Default.Tune, contentDescription = "Console")
 
-                        Screen.Fixtures ->
-                            Icon(Icons.Default.GridOn, contentDescription = "Fixtures")
                     }
                 }
 

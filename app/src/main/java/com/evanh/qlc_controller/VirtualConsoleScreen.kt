@@ -1,17 +1,21 @@
 package com.evanh.qlc_controller
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.toColorInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VirtualConsoleScreen(vm: ControlViewModel) {
 
@@ -25,12 +29,15 @@ fun VirtualConsoleScreen(vm: ControlViewModel) {
     val totalPages = (totalChannels + pageSize - 1) / pageSize
 
     var channelValues by remember { mutableStateOf(IntArray(512)) }
+    var channelMeta by remember { mutableStateOf(Array<String>(512){ "" }) }
 
     val startCh = (pageIndex * pageSize + 1).coerceIn(1, 512)
     val endCh = (startCh + pageSize - 1).coerceAtMost(512)
     val visibleChannels = (startCh..endCh).toList()
 
     val scope = rememberCoroutineScope()
+
+    var pageDropdownExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(universe, pageIndex, pageSize) {
         while (true) {
@@ -47,58 +54,78 @@ fun VirtualConsoleScreen(vm: ControlViewModel) {
 
             val parts = msg.split("|")
             val newArr = channelValues.clone()
+            val newMetaArr = channelMeta.clone()
 
-            var i = 3
-            var ch = startCh
+            var i = 2
 
             while (i < parts.size) {
-                val value = parts[i].toIntOrNull()
-
-                if (value != null && ch in 1..512) {
-                    newArr[ch - 1] = value
+                val ch = parts[i].toIntOrNull()
+                val value = parts[i + 1].toIntOrNull()
+                var meta = ""
+                if ("#" in parts[i+2]) {
+                    meta = parts[i+2].split(".")[1]
                 }
 
-                ch++
+                if (ch != null && value != null && ch in 1..512) {
+                    newArr[ch - 1] = value
+                    newMetaArr[ch - 1] = meta
+                }
+
                 i += 3
             }
-            channelValues = newArr
 
+            channelValues = newArr
+            channelMeta = newMetaArr
         }
     }
 
     Column(Modifier.fillMaxSize().padding(12.dp)) {
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth()
+        ExposedDropdownMenuBox(
+            expanded = pageDropdownExpanded,
+            onExpandedChange = { pageDropdownExpanded = !pageDropdownExpanded }
         ) {
-            Text("Page:")
-            Row {
-                Button(
-                    onClick = { pageIndex = (pageIndex - 1).coerceAtLeast(0) },
-                    enabled = pageIndex > 0
-                ) { Text("Prev") }
+            OutlinedTextField(
+                value = "Page ${pageIndex + 1} / $totalPages",
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Page") },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = pageDropdownExpanded)
+                },
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth()
+            )
 
-                Spacer(Modifier.width(8.dp))
-
-                Button(
-                    onClick = { pageIndex = (pageIndex + 1).coerceAtMost(totalPages - 1) },
-                    enabled = pageIndex < totalPages - 1
-                ) { Text("Next") }
+            ExposedDropdownMenu(
+                expanded = pageDropdownExpanded,
+                onDismissRequest = { pageDropdownExpanded = false }
+            ) {
+                (0 until totalPages).forEach { index ->
+                    DropdownMenuItem(
+                        text = { Text("Page ${index + 1}") },
+                        onClick = {
+                            pageIndex = index
+                            pageDropdownExpanded = false
+                        }
+                    )
+                }
             }
         }
 
         Spacer(Modifier.height(16.dp))
 
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState(),
-        )
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .verticalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             visibleChannels.forEach { ch ->
                 val v = channelValues[ch - 1]
+                val m = channelMeta[ch - 1]
                 VerticalFader(
                     channel = ch,
                     value = v,
@@ -109,7 +136,8 @@ fun VirtualConsoleScreen(vm: ControlViewModel) {
                         scope.launch {
                             vm.CC(ch, newVal / 255f)
                         }
-                    }
+                    },
+                    meta = m
                 )
             }
         }
@@ -117,9 +145,10 @@ fun VirtualConsoleScreen(vm: ControlViewModel) {
 }
 
 @Composable
-fun VerticalFader(channel: Int, value: Int, onValueChange: (Int) -> Unit) {
+fun VerticalFader(channel: Int, value: Int, onValueChange: (Int) -> Unit, meta: String) {
 
-    var sliderVal by remember { mutableStateOf(value) }
+    var sliderVal by remember { mutableIntStateOf(value) }
+    var sliderMeta by remember { mutableStateOf(meta) }
 
     LaunchedEffect(value) {
         sliderVal = value
@@ -130,7 +159,9 @@ fun VerticalFader(channel: Int, value: Int, onValueChange: (Int) -> Unit) {
         modifier = Modifier.width(80.dp)
     ) {
 
-        Text("Ch $channel", fontWeight = FontWeight.Bold)
+        Text(
+            "Ch $channel"
+        )
 
         Slider(
             value = sliderVal / 255f,
@@ -139,12 +170,18 @@ fun VerticalFader(channel: Int, value: Int, onValueChange: (Int) -> Unit) {
                 onValueChange(sliderVal)
             },
             modifier = Modifier
-                .height(240.dp)
-                .width(80.dp)
-                .padding(vertical = 8.dp)
+                .width(240.dp)
                 .rotate(-90f)
+                .padding(vertical = 30.dp),
+            colors = SliderDefaults.colors(
+                thumbColor = (if (meta != "" && meta != "#000000") Color(meta.toColorInt()) else MaterialTheme.colorScheme.secondary),
+                activeTrackColor = MaterialTheme.colorScheme.secondary,
+                inactiveTrackColor = MaterialTheme.colorScheme.secondaryContainer,
+            ),
         )
 
-        Text("$sliderVal")
+        Text(
+            "$sliderVal"
+        )
     }
 }
