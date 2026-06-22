@@ -1,0 +1,2 @@
+Additional features added such as channel color support for RGB fixture marking and improved UI.
+Better message deconstruction also added.
