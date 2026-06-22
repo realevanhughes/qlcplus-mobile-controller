@@ -1,4 +1,4 @@
-# Introduction
+# Controller for QLC+
 This is a 3rd party Android app built to emulate some features from the QLC+ web interface but on a native phone/tablet application.
 
 It uses a WebSocket connection exposed by QLC+ desktop software (when enabled) to read and write channel changes, function status and DMX keypad data from the host.
@@ -14,6 +14,7 @@ Currently, the following features are quite/fully implemented:
 - "Simple Desk" style fader panel
 - Multi-fixture selection
 - Basic multi-fixture animations
+- Colored channels
 
 # UI screenshots
 <table>
@@ -26,7 +27,9 @@ Currently, the following features are quite/fully implemented:
 </table>
 
 # How to install
-There are release APKs listed in the release section of this very repo.
+You can install this application directly by downloading the built APKs from the releases page.
+
+I am currently working on getting this listed on F-Droid and Google Play.
 
 # Credits
 Thanks so much to the amazing QLC+ team for their continued work on the desktop version of QLC+ (of which this is a controller for).
