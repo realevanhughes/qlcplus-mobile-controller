@@ -7,7 +7,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Dialpad
-import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Monitor
 import androidx.compose.material.icons.filled.Tune
 

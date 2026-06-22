@@ -37,17 +37,17 @@ class QlcWebSocketClient(
         socket?.send(msg)
     }
 
-    override fun onOpen(ws: WebSocket, response: Response) {
+    override fun onOpen(webSocket: WebSocket, response: Response) {
         Log.d("WS", "WebSocket connected")
         connected.value = true
     }
 
-    override fun onMessage(ws: WebSocket, text: String) {
+    override fun onMessage(webSocket: WebSocket, text: String) {
         incoming.value = text
         //Log.d("DMX", "msg $text")
     }
 
-    override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
+    override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         Log.e("WS", "Failure: ${t.message}")
         connected.value = false
     }

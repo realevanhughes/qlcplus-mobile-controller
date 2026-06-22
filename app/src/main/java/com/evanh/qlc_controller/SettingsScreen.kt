@@ -9,8 +9,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Power
 import androidx.compose.material.icons.filled.Star
@@ -33,42 +33,14 @@ fun getAppVersionInfo(context: Context): Pair<String, Long> {
     return versionName to versionCode
 }
 
-@Composable
-fun RowScope.ModeButton(
-    label: String,
-    mode: ControlMode,
-    current: ControlMode,
-    onChange: (ControlMode) -> Unit
-) {
-    val selected = (mode == current)
-
-    Button(
-        onClick = { onChange(mode) },
-        colors = ButtonDefaults.buttonColors(
-            containerColor =
-                if (selected) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.surfaceVariant
-        ),
-        modifier = Modifier.weight(1f)
-    ) {
-        Text(
-            text = label,
-            color = if (selected) MaterialTheme.colorScheme.onPrimary
-            else MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
 
 @Composable
 fun SettingsScreen(
     vm: ControlViewModel,
     onDone: () -> Unit
 ) {
-    val context = LocalContext.current
-
-    var refreshSec by remember { mutableLongStateOf(vm.DMXRefresh.longValue) }
-    var fade by remember { mutableLongStateOf(vm.DMXFade.longValue) }
+    var refreshSec by remember { mutableLongStateOf(vm.dmxRefresh.longValue) }
+    var fade by remember { mutableLongStateOf(vm.dmxFade.longValue) }
 
     var useIconLabels by remember { mutableStateOf(vm.useIconLabels.value) }
     var useHaptics by remember { mutableStateOf(vm.useHaptics.value) }
@@ -77,9 +49,11 @@ fun SettingsScreen(
     var ipText by remember { mutableStateOf(vm.ip.value) }
     var portText by remember { mutableStateOf(vm.port.intValue.toString()) }
 
-    var universeCountText by remember { mutableStateOf(vm.universeCount.value.toString()) }
+    var universeCountText by remember { mutableStateOf(vm.universeCount.intValue.toString()) }
     var defaultUniverseText by remember { mutableStateOf(vm.defaultUniverse.intValue.toString()) }
     var pageSizeText by remember { mutableStateOf(vm.pageSize.intValue.toString()) }
+
+    var lockOrientation by remember { mutableStateOf(vm.lockOrientation.value) }
 
     val ipValid = ipText.isNotBlank()
     val portValid = portText.toIntOrNull() != null
@@ -108,6 +82,7 @@ fun SettingsScreen(
         vm.updateIconLabels(useIconLabels)
         vm.updateHaptics(useHaptics)
         vm.updateSettingsPopups(useSettingsPopups)
+        vm.updateLockOrientation(lockOrientation)
     }
 
     Scaffold(
@@ -151,7 +126,7 @@ fun SettingsScreen(
             Spacer(Modifier.height(10.dp))
 
             val controlOptions = listOf(ControlMode.NONE, ControlMode.WEBSOCKET)
-            val selectedControlIndex = remember { mutableStateOf(controlOptions.indexOf(vm.controlMode.value)) }
+            val selectedControlIndex = remember { mutableIntStateOf(controlOptions.indexOf(vm.controlMode.value)) }
 
             MultiChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 controlOptions.forEachIndexed { index, mode ->
@@ -160,9 +135,9 @@ fun SettingsScreen(
                             index = index,
                             count = controlOptions.size
                         ),
-                        checked = selectedControlIndex.value == index,
+                        checked = selectedControlIndex.intValue == index,
                         onCheckedChange = {
-                            selectedControlIndex.value = index
+                            selectedControlIndex.intValue = index
                             vm.controlMode.value = mode
                             saveSettings()
                         },
@@ -221,7 +196,7 @@ fun SettingsScreen(
                 trailingIcon = {
                     IconButton(onClick = { vm.showMessage("Info","This is the IP address of your QLC host computer. Currently we only support IPv4 addresses.\nThis is usually something like:\n192.168.1.1") }) {
                         Icon(
-                            imageVector = Icons.Default.Help,
+                            imageVector = Icons.AutoMirrored.Filled.Help,
                             contentDescription = "Help"
                         )
                     }
@@ -246,7 +221,7 @@ fun SettingsScreen(
                         )
 
                         Text(
-                            "This IP address is invalid and will not connect to QLC+."
+                            "This IP address is not IPv4 and may not connect to QLC+"
                         )
                     }
                 }
@@ -265,7 +240,7 @@ fun SettingsScreen(
                 trailingIcon = {
                     IconButton(onClick = { vm.showMessage("Info","This is the port which is used to connect to the host.\nThis must be forwarded in the host's firewall.\nThe default port on QLC+ is 9999.") }) {
                         Icon(
-                            imageVector = Icons.Default.Help,
+                            imageVector = Icons.AutoMirrored.Filled.Help,
                             contentDescription = "Help"
                         )
                     }
@@ -311,7 +286,7 @@ fun SettingsScreen(
                 trailingIcon = {
                     IconButton(onClick = { vm.showMessage("Info","How many total DMX universes you can choose from.\nNot used very much in this application.") }) {
                         Icon(
-                            imageVector = Icons.Default.Help,
+                            imageVector = Icons.AutoMirrored.Filled.Help,
                             contentDescription = "Help"
                         )
                     }
@@ -330,7 +305,7 @@ fun SettingsScreen(
                 trailingIcon = {
                     IconButton(onClick = { vm.showMessage("Info","The default port QLC+ controller will change/read when an interaction is made.\nUsually this is left at 1.") }) {
                         Icon(
-                            imageVector = Icons.Default.Help,
+                            imageVector = Icons.AutoMirrored.Filled.Help,
                             contentDescription = "Help"
                         )
                     }
@@ -362,7 +337,8 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            Text("Channels per page:", style = MaterialTheme.typography.bodyMedium)
+            Text("Channels per page:")
+            Spacer(Modifier.height(8.dp))
             DropdownMenuSwitcher(
                 current = pageSizeText,
                 options = listOf("12", "24", "48", "96")
@@ -394,7 +370,7 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -411,7 +387,24 @@ fun SettingsScreen(
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Lock to portrait orientation")
+                Spacer(Modifier.weight(1f))
+                Switch(
+                    checked = lockOrientation,
+                    onCheckedChange = {
+                        lockOrientation = it
+                        saveSettings()
+                    }
+                )
+            }
+
+            Spacer(Modifier.height(10.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -428,7 +421,7 @@ fun SettingsScreen(
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -460,7 +453,7 @@ fun SettingsScreen(
             )
 
             if (refreshSec > 400f && vm.useSettingsPopups.value) {
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
@@ -468,7 +461,7 @@ fun SettingsScreen(
                     Row(
                         verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(10.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Info,
@@ -497,7 +490,7 @@ fun SettingsScreen(
             )
 
             if (fade > 400f && vm.useSettingsPopups.value) {
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
@@ -505,7 +498,7 @@ fun SettingsScreen(
                     Row(
                         verticalAlignment = Alignment.Top,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(10.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Info,
@@ -523,7 +516,7 @@ fun SettingsScreen(
 
             Text("About", style = MaterialTheme.typography.headlineSmall)
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
             val context = LocalContext.current
             val isDark = isSystemInDarkTheme()
 
@@ -537,13 +530,13 @@ fun SettingsScreen(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFFBE9236)),
             ) {
-                Column(Modifier.padding(12.dp)) {
+                Column(Modifier.padding(10.dp)) {
                     Icon(
                         Icons.Default.Star,
                         contentDescription = null,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    Text("You are running version $versionCode of QLC+ mobile controller built by Evan Hughes.")
+                    Text("You are running version $versionName (codename $versionCode) of QLC+ mobile controller built by Evan Hughes.")
                     AssistChip(
                         onClick = {
                             val intent = Intent(

@@ -1,6 +1,5 @@
 package com.evanh.qlc_controller
 
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -14,22 +13,22 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColorInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VirtualConsoleScreen(vm: ControlViewModel) {
 
-    var pageIndex by remember { mutableStateOf(0) }
+    var pageIndex by remember { mutableIntStateOf(0) }
 
-    var universe by remember { mutableStateOf(vm.defaultUniverse.value) }
-    val pageSize = vm.pageSize.value
-    val maxUniverses = vm.universeCount.value
+    var universe by remember { mutableIntStateOf(vm.defaultUniverse.intValue) }
+    val pageSize = vm.pageSize.intValue
 
     val totalChannels = 512
     val totalPages = (totalChannels + pageSize - 1) / pageSize
 
     var channelValues by remember { mutableStateOf(IntArray(512)) }
-    var channelMeta by remember { mutableStateOf(Array<String>(512){ "" }) }
+    var channelMeta by remember { mutableStateOf(Array(512){ "" }) }
 
     val startCh = (pageIndex * pageSize + 1).coerceIn(1, 512)
     val endCh = (startCh + pageSize - 1).coerceAtMost(512)
@@ -41,8 +40,8 @@ fun VirtualConsoleScreen(vm: ControlViewModel) {
 
     LaunchedEffect(universe, pageIndex, pageSize) {
         while (true) {
-            vm.RUni(universe, pageIndex, pageSize)
-            delay(vm.DMXRefresh.longValue)
+            vm.rUni(universe, pageIndex, pageSize)
+            delay(vm.dmxRefresh.longValue.milliseconds)
         }
     }
 
@@ -134,7 +133,7 @@ fun VirtualConsoleScreen(vm: ControlViewModel) {
                         updated[ch - 1] = newVal
                         channelValues = updated
                         scope.launch {
-                            vm.CC(ch, newVal / 255f)
+                            vm.cc(ch, newVal / 255f)
                         }
                     },
                     meta = m
@@ -148,7 +147,6 @@ fun VirtualConsoleScreen(vm: ControlViewModel) {
 fun VerticalFader(channel: Int, value: Int, onValueChange: (Int) -> Unit, meta: String) {
 
     var sliderVal by remember { mutableIntStateOf(value) }
-    var sliderMeta by remember { mutableStateOf(meta) }
 
     LaunchedEffect(value) {
         sliderVal = value

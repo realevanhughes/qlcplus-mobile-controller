@@ -44,4 +44,8 @@ class SettingsRepository(private val context: Context) {
     suspend fun saveSettingsPopups(value: Boolean) {
         context.settingsDataStore.edit { it[SettingsKeys.SETTINGS_POPUPS] = value }
     }
+
+    suspend fun saveLockOrientation(value: Boolean) {
+        context.settingsDataStore.edit { it[SettingsKeys.LOCK_ORIENTATION] = value }
+    }
 }

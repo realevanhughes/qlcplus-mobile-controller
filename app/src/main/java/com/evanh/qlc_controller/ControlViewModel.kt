@@ -1,16 +1,13 @@
 package com.evanh.qlc_controller
-
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.delay
 import org.json.JSONObject
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import kotlin.collections.plus
+import kotlin.time.Duration.Companion.milliseconds
 
 class ControlViewModel(
     private val settingsRepository: SettingsRepository
@@ -23,15 +20,17 @@ class ControlViewModel(
     var universeCount = mutableIntStateOf(4)
     var defaultUniverse = mutableIntStateOf(1)
     var pageSize = mutableIntStateOf(24)
-    var DMXRefresh = mutableLongStateOf(20L)
+    var dmxRefresh = mutableLongStateOf(20L)
 
-    var DMXFade = mutableLongStateOf(0L)
+    var dmxFade = mutableLongStateOf(0L)
 
     var useIconLabels = mutableStateOf(true)
 
     var useHaptics = mutableStateOf(false)
 
     var useSettingsPopups = mutableStateOf(true)
+
+    var lockOrientation = mutableStateOf(false)
 
     init {
         viewModelScope.launch {
@@ -43,11 +42,13 @@ class ControlViewModel(
                 defaultUniverse.intValue = (prefs[SettingsKeys.DEFAULT_UNIVERSE] ?: defaultUniverse.intValue)
 
                 pageSize.intValue = (prefs[SettingsKeys.PAGE_SIZE] ?: pageSize.intValue)
-                DMXRefresh.longValue = (prefs[SettingsKeys.DMX_REFRESH] ?: DMXRefresh.longValue)
-                DMXFade.longValue = (prefs[SettingsKeys.DMX_FADE] ?: DMXFade.longValue)
+                dmxRefresh.longValue = (prefs[SettingsKeys.DMX_REFRESH] ?: dmxRefresh.longValue)
+                dmxFade.longValue = (prefs[SettingsKeys.DMX_FADE] ?: dmxFade.longValue)
                 useIconLabels.value = (prefs[SettingsKeys.ICON_LABELS] ?: useIconLabels.value)
                 useHaptics.value = (prefs[SettingsKeys.HAPTICS] ?: useHaptics.value)
                 useSettingsPopups.value = (prefs[SettingsKeys.SETTINGS_POPUPS] ?: useSettingsPopups.value)
+
+                lockOrientation.value = (prefs[SettingsKeys.LOCK_ORIENTATION] ?: lockOrientation.value)
             }
         }
     }
@@ -78,12 +79,12 @@ class ControlViewModel(
     }
 
     fun updateDMXRefresh(v: Long) = viewModelScope.launch {
-        DMXRefresh.longValue = v
+        dmxRefresh.longValue = v
         settingsRepository.saveDMXRefresh(v)
     }
 
     fun updateDMXFade(v: Long) = viewModelScope.launch {
-        DMXFade.longValue = v
+        dmxFade.longValue = v
         settingsRepository.saveDMXFade(v)
     }
 
@@ -100,6 +101,11 @@ class ControlViewModel(
     fun updateSettingsPopups(v: Boolean) = viewModelScope.launch {
         useSettingsPopups.value = v
         settingsRepository.saveSettingsPopups(v)
+    }
+
+    fun updateLockOrientation(v: Boolean) = viewModelScope.launch {
+        lockOrientation.value = v
+        settingsRepository.saveLockOrientation(v)
     }
 
 
@@ -131,7 +137,7 @@ class ControlViewModel(
 
     val wsClient = QlcWebSocketClient(
         ip = { ip.value },
-        port = { port.value }
+        port = { port.intValue }
     )
 
     val wsIncoming = wsClient.incoming
@@ -151,7 +157,7 @@ class ControlViewModel(
 
     }
 
-    suspend fun CC(channel: Int, value: Float) {
+    suspend fun cc(channel: Int, value: Float) {
         val intValue = (value * 255f).toInt().coerceIn(0, 255)
         val msg = "CH|$channel|$intValue"
 
@@ -166,7 +172,7 @@ class ControlViewModel(
         }
     }
 
-    suspend fun RC(channel: Int, universe: Int) {
+    suspend fun rc(channel: Int, universe: Int) {
         val msg = "QLC+API|getChannelsValues|$universe|$channel|1"
 
         when (controlMode.value) {
@@ -198,8 +204,8 @@ class ControlViewModel(
             ControlMode.WEBSOCKET -> {
                 channels.forEach { ch ->
                     if (ch in 1..512) {
-                        CC(ch, normalized)
-                        delay(DMXFade.value)
+                        cc(ch, normalized)
+                        delay(dmxFade.longValue.milliseconds)
                     }
                 }
             }
@@ -218,7 +224,7 @@ class ControlViewModel(
         }
     }
 
-    suspend fun CCReset(channel: Int) {
+    fun ccReset(channel: Int) {
         val msg = "QLC+API|sdResetChannel|$channel"
         when (controlMode.value) {
             ControlMode.NONE ->
@@ -230,7 +236,7 @@ class ControlViewModel(
         }
     }
 
-    suspend fun UniReset(universe: Int) {
+    fun uniReset(universe: Int) {
         val msg = "QLC+API|sdResetUniverse|$universe"
         when (controlMode.value) {
             ControlMode.NONE ->
@@ -242,7 +248,7 @@ class ControlViewModel(
         }
     }
 
-    suspend fun RUni(universe: Int, pageIndex: Int, pageSize: Int) {
+    fun rUni(universe: Int, pageIndex: Int, pageSize: Int) {
         val safePageIndex = pageIndex.coerceAtLeast(0)
         val start = (safePageIndex * pageSize + 1).coerceIn(1, 512)
         val count = pageSize.coerceIn(1, 512 - start + 1)
@@ -258,7 +264,7 @@ class ControlViewModel(
         }
     }
 
-    suspend fun RangeReset(start: Int, end: Int, universe: Int) {
+    suspend fun rangeReset(start: Int, end: Int, universe: Int) {
         when (controlMode.value) {
             ControlMode.NONE -> {
                 dummySend("RANGE", "Reset $start to $end")
@@ -267,8 +273,8 @@ class ControlViewModel(
             ControlMode.WEBSOCKET -> {
                 val channels = 1..512
                 channels.forEach { ch ->
-                    if (ch in start..end) CCReset(ch)
-                    delay(DMXFade.value)
+                    if (ch in start..end) ccReset(ch)
+                    delay(dmxFade.longValue.milliseconds)
                 }
             }
         }

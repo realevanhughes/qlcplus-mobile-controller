@@ -13,4 +13,5 @@ object SettingsKeys {
     val ICON_LABELS = booleanPreferencesKey("icon_labels")
     val HAPTICS = booleanPreferencesKey("haptics")
     val SETTINGS_POPUPS = booleanPreferencesKey("settings_popups")
+    val LOCK_ORIENTATION = booleanPreferencesKey("lock_orientation")
 }

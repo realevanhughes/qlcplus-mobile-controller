@@ -22,7 +22,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.BrightnessHigh
 import androidx.compose.material.icons.filled.BrightnessLow
 import androidx.compose.material.icons.filled.Cancel
@@ -32,7 +33,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MultipleStop
 import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Send
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -62,35 +62,35 @@ fun KeyButton(
         )
     ) {
         var changed = false
-        if (useIconLabels && text == "BACK" && !changed) {
-            Icon(Icons.Default.Backspace, contentDescription = "Backspace")
+        if (useIconLabels && text == "BACK") {
+            Icon(Icons.AutoMirrored.Filled.Backspace, contentDescription = "Backspace")
             changed = true
         }
-        if (useIconLabels && text == "ENTER" && !changed) {
-            Icon(Icons.Default.Send, contentDescription = "Enter", tint = MaterialTheme.colorScheme.onSurface)
+        if (useIconLabels && text == "ENTER") {
+            Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Enter", tint = MaterialTheme.colorScheme.onSurface)
             changed = true
         }
-        if (useIconLabels && text == "THRU" && !changed) {
+        if (useIconLabels && text == "THRU") {
             Icon(Icons.Default.MultipleStop, contentDescription = "THRU")
             changed = true
         }
-        if (useIconLabels && text == "AT" && !changed) {
+        if (useIconLabels && text == "AT") {
             Icon(Icons.Default.Edit, contentDescription = "AT")
             changed = true
         }
-        if (useIconLabels && text == "FULL" && !changed) {
+        if (useIconLabels && text == "FULL") {
             Icon(Icons.Default.BrightnessHigh, contentDescription = "FULL")
             changed = true
         }
-        if (useIconLabels && text == "ZERO" && !changed) {
+        if (useIconLabels && text == "ZERO") {
             Icon(Icons.Default.BrightnessLow, contentDescription = "ZERO")
             changed = true
         }
-        if (useIconLabels && text == "UNI" && !changed) {
+        if (useIconLabels && text == "UNI") {
             Icon(Icons.Default.Public, contentDescription = "UNI")
             changed = true
         }
-        if (useIconLabels && text == "CLR" && !changed) {
+        if (useIconLabels && text == "CLR") {
             Icon(Icons.Default.Clear, contentDescription = "CLR")
             changed = true
         }
@@ -111,7 +111,7 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
     val scope = rememberCoroutineScope()
     var command by remember { mutableStateOf("") }
 
-    var commandHistory = remember { mutableStateListOf<CommandEntry>() }
+    val commandHistory = remember { mutableStateListOf<CommandEntry>() }
     val listState = rememberLazyListState()
 
     LaunchedEffect(commandHistory.size) {
@@ -169,7 +169,7 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
 
                 if (channel != null && value != null) {
                     scope.launch(Dispatchers.IO) {
-                        vm.CC(channel, value / 255f)
+                        vm.cc(channel, value / 255f)
                     }
                 }
                 exec = true
@@ -180,7 +180,7 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
                 val value = parts[2].toIntOrNull()
                 if (channel != null && value != null) {
                     scope.launch(Dispatchers.IO) {
-                        vm.RC(channel, vm.defaultUniverse.value)
+                        vm.rc(channel, vm.defaultUniverse.intValue)
                         vm.wsIncoming.collect { msg ->
                             if (msg == null) return@collect
                             if (!msg.startsWith("QLC+API|getChannelsValues")) return@collect
@@ -191,7 +191,7 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
                                         "Next time please don't specify such a value.")
                             }
                             else {
-                                vm.CC(channel, (parts[3].toInt().plus(value)).div(255f))
+                                vm.cc(channel, (parts[3].toInt().plus(value)).div(255f))
                             }
                         }
                     }
@@ -204,7 +204,7 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
                 val value = parts[2].toIntOrNull()
                 if (channel != null && value != null) {
                     scope.launch(Dispatchers.IO) {
-                        vm.RC(channel, vm.defaultUniverse.value)
+                        vm.rc(channel, vm.defaultUniverse.intValue)
                         vm.wsIncoming.collect { msg ->
                             if (msg == null) return@collect
                             if (!msg.startsWith("QLC+API|getChannelsValues")) return@collect
@@ -215,7 +215,7 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
                                         "Next time please don't specify such a value.")
                             }
                             else {
-                                vm.CC(channel, (parts[3].toInt().minus(value)).div(255f))
+                                vm.cc(channel, (parts[3].toInt().minus(value)).div(255f))
                             }
                         }
                     }
@@ -228,7 +228,7 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
 
                 if (channel != null) {
                     scope.launch(Dispatchers.IO) {
-                        vm.CCReset(channel)
+                        vm.ccReset(channel)
                     }
                 }
                 exec = true
@@ -238,7 +238,7 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
 
                 if (universe != null) {
                     scope.launch(Dispatchers.IO) {
-                        vm.UniReset(universe)
+                        vm.uniReset(universe)
                     }
                 }
                 exec = true
@@ -258,7 +258,7 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
                 val value = parts[4].toIntOrNull()?.coerceIn(0, 255) ?: return
                 scope.launch {
                     vm.applyToRange(
-                        universe = vm.defaultUniverse.value,
+                        universe = vm.defaultUniverse.intValue,
                         channels = parts[0].toInt()..parts[2].toInt(),
                         value = value
                     )
@@ -267,7 +267,7 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
             }
             if (parts.size >= 4 && parts[1] == "THRU" && parts[3] == "CLR") {
                 scope.launch {
-                    vm.RangeReset(parts[0].toInt(), parts[2].toInt(), vm.defaultUniverse.value)
+                    vm.rangeReset(parts[0].toInt(), parts[2].toInt(), vm.defaultUniverse.intValue)
                 }
                 exec = true
             }
@@ -373,7 +373,6 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
             CommandHistory(
                 cmds = commandHistory,
                 onClear = { clearHistory() },
-                cmd = command,
                 onCmdClick = { editCurrentCommand(it) },
                 listState = listState,
             )
@@ -387,7 +386,6 @@ fun DmxKeypadScreen(vm: ControlViewModel) {
 fun CommandHistory(
     cmds: List<CommandEntry>,
     onClear: () -> Unit = {},
-    cmd: String,
     onCmdClick: (String) -> Unit,
     listState: LazyListState
 ) {

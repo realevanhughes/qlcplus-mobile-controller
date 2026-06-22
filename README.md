@@ -19,10 +19,10 @@ Currently, the following features are quite/fully implemented:
 # UI screenshots
 <table>
   <tr>
-    <td><img src="docs/screenshots/Screenshot_20260617_180303.png" width="200"></td>
-    <td><img src="docs/screenshots/Screenshot_20260617_180412.png" width="200"></td>
-    <td><img src="docs/screenshots/Screenshot_20260617_180443.png" width="200"></td>
-    <td><img src="docs/screenshots/Screenshot_20260617_180504.png" width="200"></td>
+    <td><img src="docs/screenshots/Screenshot_20260617_180303.png" width="200" alt="Screenshot of monitor page"></td>
+    <td><img src="docs/screenshots/Screenshot_20260617_180412.png" width="200" alt="Screenshot of fader page"></td>
+    <td><img src="docs/screenshots/Screenshot_20260617_180443.png" width="200" alt="Screenshot of DMX keypad page"></td>
+    <td><img src="docs/screenshots/Screenshot_20260617_180504.png" width="200" alt="Screenshot of settings page"></td>
   </tr>
 </table>
 

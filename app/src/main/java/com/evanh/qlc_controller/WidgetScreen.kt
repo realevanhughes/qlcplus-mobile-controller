@@ -210,7 +210,7 @@ fun VCButtonCell(vm: ControlViewModel, btn: VcWidget.Button) {
 
 @Composable
 fun VCSliderCell(vm: ControlViewModel, slider: VcWidget.Slider) {
-    var sliderPosition by remember(slider.value) { mutableStateOf(slider.value / 255f) }
+    var sliderPosition by remember(slider.value) { mutableFloatStateOf(slider.value / 255f) }
 
     Card(
         modifier = Modifier

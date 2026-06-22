@@ -1,7 +1,6 @@
 package com.evanh.qlc_controller
 
 import android.app.Activity
-import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -49,31 +48,27 @@ class MainActivity : ComponentActivity() {
                     ) {
 
                         composable(Screen.Settings.route) {
-                            SettingsScreen(vm) {
-                                navController.navigate(Screen.Keypad.route)
-                            }
+                            LockOrientationScreen({ SettingsScreen(vm) { navController.navigate(Screen.Keypad.route) } }, vm.lockOrientation.value)
                         }
                         composable(Screen.Keypad.route) {
                             if (vm.controlMode.value == ControlMode.WEBSOCKET && !vm.connected.value) {
-                                WebSocketRequiredScreen(onRetry = { DmxKeypadScreen(vm) }, vm, navController)
+                                WebSocketRequiredScreen(onRetry = { LockOrientationScreen({ DmxKeypadScreen(vm) }, true) }, vm, navController)
                             } else {
-                                LockOrientationScreen {
-                                    DmxKeypadScreen(vm)
-                                }
+                                LockOrientationScreen({ DmxKeypadScreen(vm) }, true)
                             }
                         }
                         composable(Screen.Monitor.route) {
                             if (vm.controlMode.value == ControlMode.WEBSOCKET && !vm.connected.value) {
-                                WebSocketRequiredScreen(onRetry = { DmxMonitorScreen(vm) }, vm, navController)
+                                WebSocketRequiredScreen(onRetry = { LockOrientationScreen({ DmxMonitorScreen(vm) }, vm.lockOrientation.value) }, vm, navController)
                             } else {
-                                DmxMonitorScreen(vm)
+                                LockOrientationScreen({ DmxMonitorScreen(vm) }, vm.lockOrientation.value)
                             }
                         }
                         composable(Screen.Console.route) {
                             if (vm.controlMode.value == ControlMode.WEBSOCKET && !vm.connected.value) {
-                                WebSocketRequiredScreen(onRetry = { VirtualConsoleScreen(vm) }, vm, navController)
+                                WebSocketRequiredScreen(onRetry = { LockOrientationScreen({ VirtualConsoleScreen(vm) }, vm.lockOrientation.value) }, vm, navController)
                             } else {
-                                VirtualConsoleScreen(vm)
+                                LockOrientationScreen({ VirtualConsoleScreen(vm) }, vm.lockOrientation.value)
                             }
                         }
                     }
@@ -83,17 +78,24 @@ class MainActivity : ComponentActivity() {
     }
 }
 @Composable
-fun LockOrientationScreen(content: @Composable () -> Unit) {
+fun LockOrientationScreen(
+    content: @Composable () -> Unit,
+    lockOrientation: Boolean,
+) {
     val context = LocalContext.current
     val activity = remember { context as Activity }
 
     val originalOrientation = remember { activity.requestedOrientation }
 
-    DisposableEffect(Unit) {
-        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    if (lockOrientation) {
+        DisposableEffect(Unit) {
 
-        onDispose {
-            activity.requestedOrientation = originalOrientation
+            activity.requestedOrientation =
+                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
+            onDispose {
+                activity.requestedOrientation = originalOrientation
+            }
         }
     }
 

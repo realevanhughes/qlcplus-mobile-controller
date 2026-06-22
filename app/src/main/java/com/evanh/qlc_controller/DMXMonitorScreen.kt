@@ -1,6 +1,5 @@
 package com.evanh.qlc_controller
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
@@ -24,6 +23,7 @@ import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material.icons.filled.TipsAndUpdates
 import androidx.compose.material.icons.filled.Water
 import androidx.compose.material3.*
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
@@ -38,6 +38,7 @@ import kotlin.collections.map
 import kotlin.collections.setOf
 import kotlin.math.sin
 import androidx.core.graphics.toColorInt
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,7 +52,7 @@ fun DmxMonitorScreen(vm: ControlViewModel) {
     val totalPages = (totalChannels + pageSize - 1) / pageSize
 
     var channelValues by remember { mutableStateOf(IntArray(512)) }
-    var channelMeta by remember { mutableStateOf(Array<String>(512){ "" }) }
+    var channelMeta by remember { mutableStateOf(Array(512){ "" }) }
     var selected by remember { mutableStateOf(setOf<Pair<Int, Int>>()) }
 
     var groupValue by remember { mutableIntStateOf(0) }
@@ -62,7 +63,7 @@ fun DmxMonitorScreen(vm: ControlViewModel) {
 
     LaunchedEffect(selected) {
         if (selected.isNotEmpty()) {
-            val avg = selected.map { (uni, ch) ->
+            val avg = selected.map { (_, ch) ->
                 channelValues[(ch - 1)]
             }.average().toInt()
             groupValue = avg
@@ -75,8 +76,8 @@ fun DmxMonitorScreen(vm: ControlViewModel) {
 
     LaunchedEffect(universe, pageIndex, pageSize) {
         while (true) {
-            vm.RUni(universe, pageIndex, pageSize)
-            delay(vm.DMXRefresh.longValue)
+            vm.rUni(universe, pageIndex, pageSize)
+            delay(vm.dmxRefresh.longValue.milliseconds)
         }
     }
 
@@ -199,8 +200,11 @@ fun DmxMonitorScreen(vm: ControlViewModel) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("U$universe Ch $ch", fontWeight = FontWeight.Bold)
                         LinearProgressIndicator(
-                            progress = value / 255f,
-                            modifier = Modifier.fillMaxWidth().height(6.dp)
+                        progress = { value / 255f },
+                        modifier = Modifier.fillMaxWidth().height(6.dp),
+                        color = ProgressIndicatorDefaults.linearColor,
+                        trackColor = ProgressIndicatorDefaults.linearTrackColor,
+                        strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                         )
                         Text("$value")
                     }
@@ -241,9 +245,9 @@ fun GroupFaderWithFX(
     fun sendDmxValue(value: Float, byteValue: Byte) {
         scope.launch {
             for ((_, ch) in selected) {
-                vm.CC(ch, value)
+                vm.cc(ch, value)
                 if (ch in 1..channelValues.size) channelValues[ch - 1] = byteValue.toInt()
-                delay(vm.DMXRefresh.longValue)
+                delay(vm.dmxRefresh.longValue.milliseconds)
             }
         }
     }
@@ -263,9 +267,9 @@ fun GroupFaderWithFX(
 
             FX.Strobe -> while (activeEffect == FX.Strobe) {
                 sendDmxValue(1f, 255.toByte())
-                delay(60)
+                delay(60.milliseconds)
                 sendDmxValue(0f, 0.toByte())
-                delay(60)
+                delay(60.milliseconds)
             }
 
             FX.Pulse -> {
@@ -274,7 +278,7 @@ fun GroupFaderWithFX(
                     val range = if (up) (0..255) else (255 downTo 0)
                     for (i in range step 5) {
                         sendDmxValue(i / 255f, i.toByte())
-                        delay(12)
+                        delay(12.milliseconds)
                     }
                     up = !up
                 }
@@ -285,11 +289,11 @@ fun GroupFaderWithFX(
                 while (activeEffect == FX.Chase) {
                     selected.forEachIndexed { i, (_, ch) ->
                         val value = if (i == index) 1f else 0f
-                        vm.CC(ch, value)
+                        vm.cc(ch, value)
                         if (ch in 1..channelValues.size) channelValues[ch - 1] = if (value == 1f) 255 else 0
                     }
                     index = (index + 1) % selected.size
-                    delay(80)
+                    delay(80.milliseconds)
                 }
             }
 
@@ -298,11 +302,11 @@ fun GroupFaderWithFX(
                 while (activeEffect == FX.Wave) {
                     selected.forEachIndexed { i, (_, ch) ->
                         val v = ((sin(t + i * 0.4) + 1) / 2).toFloat()
-                        vm.CC(ch, v)
+                        vm.cc(ch, v)
                         channelValues[ch - 1] = (v * 255).toInt()
                     }
                     t += 0.5
-                    delay(50)
+                    delay(50.milliseconds)
                 }
             }
 
@@ -350,9 +354,9 @@ fun GroupFaderWithFX(
 
                     scope.launch {
                         for ((_, ch) in selected) {
-                            vm.CC(ch, newVal / 255f)
+                            vm.cc(ch, newVal / 255f)
                             channelValues[ch - 1] = newVal
-                            delay(vm.DMXFade.longValue)
+                            delay(vm.dmxFade.longValue.milliseconds)
                         }
                     }
                 }
@@ -390,7 +394,7 @@ fun GroupFaderWithFX(
                             onClick = {
                                 scope.launch {
                                     for ((_, ch) in selected) {
-                                        vm.CCReset(ch)
+                                        vm.ccReset(ch)
                                     }
                                 }
                             },

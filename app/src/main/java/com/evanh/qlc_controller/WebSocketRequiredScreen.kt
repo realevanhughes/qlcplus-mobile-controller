@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun WebSocketRequiredScreen(onRetry: @Composable () -> Unit, vm: ControlViewModel, navController: NavController) {
@@ -117,18 +118,18 @@ fun WebSocketRequiredScreen(onRetry: @Composable () -> Unit, vm: ControlViewMode
         }
     }
     LaunchedEffect(waiting) {
-        delay(2000L)
+        delay(2000L.milliseconds)
         waiting = false
     }
 
     LaunchedEffect(autoReEntry, largeIco, largeIcoColor) {
         while (true) {
-            delay(1000L)
+            delay(1000L.milliseconds)
             if (autoReEntry) {
                 vm.connectWebSocket()
                 largeIco = Icons.Default.Schedule
                 largeIcoColor = Color(0xFFFF9800)
-                delay(4000L)
+                delay(4000L.milliseconds)
             }
             largeIco = Icons.Default.Close
             largeIcoColor = Color(0xFFA41E1E)
