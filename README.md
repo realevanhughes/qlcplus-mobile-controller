@@ -18,10 +18,10 @@ Currently, the following features are quite/fully implemented:
 # UI screenshots
 <table>
   <tr>
-    <td><img src="docs/screenshots/Screenshot_20251127-125840.png" width="200"></td>
-    <td><img src="docs/screenshots/Screenshot_20251127-130024.png" width="200"></td>
-    <td><img src="docs/screenshots/Screenshot_20251127-130047.png" width="200"></td>
-    <td><img src="docs/screenshots/Screenshot_20251127-130108.png" width="200"></td>
+    <td><img src="docs/screenshots/Screenshot_20260617_180303.png" width="200"></td>
+    <td><img src="docs/screenshots/Screenshot_20260617_180412.png" width="200"></td>
+    <td><img src="docs/screenshots/Screenshot_20260617_180443.png" width="200"></td>
+    <td><img src="docs/screenshots/Screenshot_20260617_180504.png" width="200"></td>
   </tr>
 </table>
 
