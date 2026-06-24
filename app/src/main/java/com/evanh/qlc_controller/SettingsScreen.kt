@@ -54,14 +54,16 @@ fun SettingsScreen(
     var pageSizeText by remember { mutableStateOf(vm.pageSize.intValue.toString()) }
 
     var lockOrientation by remember { mutableStateOf(vm.lockOrientation.value) }
+    var qlcVersion by remember { mutableStateOf(vm.qlcVersion.intValue.toString()) }
 
     val ipValid = ipText.isNotBlank()
     val portValid = portText.toIntOrNull() != null
     val uniCountValid = universeCountText.toIntOrNull()?.let { it in 1..99 } == true
     val uniValid = defaultUniverseText.toIntOrNull()?.let { it in 1..99 } == true
     val pageValid = pageSizeText.toIntOrNull()?.let { it in listOf(12, 24, 48, 96) } == true
+    val qlcVersionValid = qlcVersion.toIntOrNull()?.let { it in listOf(4, 5) } == true
 
-    val allValid = ipValid && portValid && uniValid && uniCountValid && pageValid
+    val allValid = ipValid && portValid && uniValid && uniCountValid && pageValid && qlcVersionValid
 
     val (versionName, versionCode) = getAppVersionInfo(LocalContext.current)
 
@@ -83,6 +85,7 @@ fun SettingsScreen(
         vm.updateHaptics(useHaptics)
         vm.updateSettingsPopups(useSettingsPopups)
         vm.updateLockOrientation(lockOrientation)
+        vm.updateQlcVersion(qlcVersion.toInt())
     }
 
     Scaffold(
@@ -185,7 +188,7 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(20.dp))
 
-            Text("QLC Host Settings", style = MaterialTheme.typography.headlineSmall)
+            Text("QLC+ Host Settings", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(20.dp))
 
             OutlinedTextField(
@@ -270,6 +273,46 @@ fun SettingsScreen(
                 }
             }
 
+            Spacer(Modifier.height(12.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("QLC+ version")
+                Spacer(Modifier.weight(1f))
+                DropdownMenuSwitcher(
+                    current = qlcVersion,
+                    options = listOf("4", "5")
+                ) { selected ->
+                    qlcVersion = selected
+                    saveSettings()
+                }
+            }
+
+            if (qlcVersion.toInt() == 5 && vm.useSettingsPopups.value) {
+                Spacer(Modifier.height(12.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null
+                        )
+
+                        Text(
+                            "Support for the websockets used in the application may not be working in later QLC+ v5 updates."
+                        )
+                    }
+                }
+            }
+
             Spacer(Modifier.height(24.dp))
 
             Text("Interface", style = MaterialTheme.typography.headlineSmall)
@@ -337,14 +380,19 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(12.dp))
 
-            Text("Channels per page:")
-            Spacer(Modifier.height(8.dp))
-            DropdownMenuSwitcher(
-                current = pageSizeText,
-                options = listOf("12", "24", "48", "96")
-            ) { selected ->
-                pageSizeText = selected
-                saveSettings()
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Channels per page")
+                Spacer(Modifier.weight(1f))
+                DropdownMenuSwitcher(
+                    current = pageSizeText,
+                    options = listOf("12", "24", "48", "96")
+                ) { selected ->
+                    pageSizeText = selected
+                    saveSettings()
+                }
             }
 
             if (pageSizeText.toInt() > 24 && vm.useSettingsPopups.value) {

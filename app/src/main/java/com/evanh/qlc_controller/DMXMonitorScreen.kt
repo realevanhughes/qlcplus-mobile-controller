@@ -106,7 +106,19 @@ fun DmxMonitorScreen(vm: ControlViewModel) {
                     newMetaArr[ch - 1] = meta
                 }
 
-                i += 3
+                i += when (vm.qlcVersion.intValue) {
+                    4 -> {
+                        3
+                    }
+
+                    5 -> {
+                        4
+                    }
+
+                    else -> {
+                        3
+                    }
+                }
             }
 
             channelValues = newArr

@@ -32,6 +32,8 @@ class ControlViewModel(
 
     var lockOrientation = mutableStateOf(false)
 
+    var qlcVersion = mutableIntStateOf(4)
+
     init {
         viewModelScope.launch {
             settingsRepository.settingsFlow.collect { prefs ->
@@ -49,6 +51,8 @@ class ControlViewModel(
                 useSettingsPopups.value = (prefs[SettingsKeys.SETTINGS_POPUPS] ?: useSettingsPopups.value)
 
                 lockOrientation.value = (prefs[SettingsKeys.LOCK_ORIENTATION] ?: lockOrientation.value)
+
+                qlcVersion.intValue = (prefs[SettingsKeys.QLC_VERSION] ?: qlcVersion.intValue)
             }
         }
     }
@@ -106,6 +110,11 @@ class ControlViewModel(
     fun updateLockOrientation(v: Boolean) = viewModelScope.launch {
         lockOrientation.value = v
         settingsRepository.saveLockOrientation(v)
+    }
+
+    fun updateQlcVersion(v: Int) = viewModelScope.launch {
+        qlcVersion.intValue = v
+        settingsRepository.saveQlcVersion(v)
     }
 
 

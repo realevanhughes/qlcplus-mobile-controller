@@ -14,4 +14,5 @@ object SettingsKeys {
     val HAPTICS = booleanPreferencesKey("haptics")
     val SETTINGS_POPUPS = booleanPreferencesKey("settings_popups")
     val LOCK_ORIENTATION = booleanPreferencesKey("lock_orientation")
+    val QLC_VERSION = intPreferencesKey("qlc_version")
 }

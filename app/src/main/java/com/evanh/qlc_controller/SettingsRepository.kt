@@ -48,4 +48,8 @@ class SettingsRepository(private val context: Context) {
     suspend fun saveLockOrientation(value: Boolean) {
         context.settingsDataStore.edit { it[SettingsKeys.LOCK_ORIENTATION] = value }
     }
+
+    suspend fun saveQlcVersion(value: Int) {
+        context.settingsDataStore.edit { it[SettingsKeys.QLC_VERSION] = value }
+    }
 }
